@@ -35,23 +35,28 @@ export const countAdjacent = getCountAdjacentGridFunction("CountAdjacent", getAd
 export const countDirectlyAdjacent = getCountAdjacentGridFunction("CountDirectlyAdjacent", getDirectlyAdjacentLocations);
 
 
-export const countAdjacentChance: GridFunction = {
-    parameterCount: 5,
-    description: "CountAdjacent [comparison-operator] [target] [threshold] [destination] [chance]",
-    getParameterizedFunc: (...args: string[]) => {
-        let chance = parseFloat(args.pop());
-        if (chance < 0 || chance > 1) {
-            throw new Error("Parameter chance of CountAdjacentChance must be between 0 and 1");
-        }
-        let baseFunc = countAdjacent.getParameterizedFunc(...args);
-        return (grid: Grid, location: Location): number => {
-            let result = baseFunc(grid, location);
-            if (result != grid.grid[location.y][location.x]) {
-                if (Math.random() < chance) {
-                    return result;
-                }
+let getCountAdjacentChanceGridFunction = (name, func): GridFunction => {
+    return {
+        parameterCount: 5,
+        description: `${name} [comparison-operator] [target] [threshold] [destination] [chance]`,
+        getParameterizedFunc: (...args: string[]) => {
+            let chance = parseFloat(args.pop());
+            if (chance < 0 || chance > 1) {
+                throw new Error("Parameter chance of CountAdjacentChance must be between 0 and 1");
             }
-            return grid.grid[location.y][location.x];
+            let baseFunc = func.getParameterizedFunc(...args);
+            return (grid: Grid, location: Location): number => {
+                let result = baseFunc(grid, location);
+                if (result != grid.grid[location.y][location.x]) {
+                    if (Math.random() < chance) {
+                        return result;
+                    }
+                }
+                return grid.grid[location.y][location.x];
+            }
         }
     }
 }
+
+export const countAdjacentChance = getCountAdjacentChanceGridFunction("CountAdjacentChance", countAdjacent);
+export const countDirectlyAdjacentChance = getCountAdjacentChanceGridFunction("CountDirectlyAdjacentChance", countDirectlyAdjacent);
